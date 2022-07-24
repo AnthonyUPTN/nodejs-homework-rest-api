@@ -4,6 +4,7 @@ const cors = require("cors");
 
 require("dotenv").config();
 
+const authRouter = require("./routes/api/auth");
 const contactsRouter = require("./routes/api/contacts");
 
 const app = express();
@@ -19,7 +20,8 @@ app.use(cors());
 // мидлвар который переделывает тело post запроса с json на обьект. если не добавлен будем получать undefined
 app.use(express.json());
 
-// что делать если есть запрос на маршрут /api/contacts
+// группы маршрутов
+app.use("/api/auth", authRouter);
 app.use("/api/contacts", contactsRouter);
 
 // что делать если запрос на не существующий маршрут

@@ -1,9 +1,13 @@
 const express = require("express");
 const Joi = require("joi");
 
+require("dotenv").config();
+
 const Contact = require("../../models/contact");
 
-const { createError } = require("../../helpers/createError");
+const {authorize} = require('../../middlewares');
+const { createError } = require("../../helpers");
+
 const router = express.Router();
 
 const contactSchema = Joi.object({
@@ -17,16 +21,19 @@ const contactUpdateFavoriteSchema = Joi.object({
   favorite: Joi.boolean().required(),
 });
 
-router.get("/", async (req, res, next) => {
+router.get("/", authorize, async (req, res, next) => {
   try {
-    const result = await Contact.find({}, "-createdAt -updatedAt");
+    const {_id: owner} = req.user;
+    const result = await Contact.find({owner}, "-createdAt -updatedAt")
+    // возьми id из owner, пойди в коллекцию которая записана в ref и найди информацию
+    .populate('owner', "email, subscription");
     res.status(200).json(result);
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", authorize, async (req, res, next) => {
   try {
     const result = await Contact.findById(req.params.id);
     console.log(res);
@@ -40,14 +47,14 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", authorize, async (req, res, next) => {
   try {
     const { error } = contactSchema.validate(req.body);
     if (error) {
       throw createError(400, error.message);
     }
 
-    const result = await Contact.create(req.body);
+    const result = await Contact.create({...req.body, owner: req.user._id});
 
     res.status(201).json(result);
   } catch (error) {
