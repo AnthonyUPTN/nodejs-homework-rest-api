@@ -20,6 +20,8 @@ app.use(cors());
 // мидлвар который переделывает тело post запроса с json на обьект. если не добавлен будем получать undefined
 app.use(express.json());
 
+app.use(express.static('public'));
+
 // группы маршрутов
 app.use("/api/auth", authRouter);
 app.use("/api/contacts", contactsRouter);
